@@ -19,28 +19,28 @@
 <details>
 <summary><h2>Справка по типам отношений</h2></summary>
 
-### 1:1 (One-to-One) — Уникальные связи
+### 1:1 (One-to-One) - Уникальные связи
 
 Одна запись слева соответствует ровно одной справа.  
-**Пример:** `USER ↔ PROFILE` — каждый пользователь имеет ровно один профиль.
+**Пример:** `USER ↔ PROFILE` - каждый пользователь имеет ровно один профиль.
 
 ---
 
-### 1:N (One-to-Many) — Иерархия
+### 1:N (One-to-Many) - Иерархия
 
 Одна запись слева связана с несколькими справа.  
-**Пример:** `DEPARTMENT → EMPLOYEE` — один отдел имеет множество сотрудников.
+**Пример:** `DEPARTMENT → EMPLOYEE` - один отдел имеет множество сотрудников.
 
 ---
 
-### N:1 (Many-to-One) — Обратная иерархия
+### N:1 (Many-to-One) - Обратная иерархия
 
 Несколько записей слева ссылаются на одну справа.  
-**Пример:** `PRODUCT → CATEGORY` — множество продуктов относятся к одной категории.
+**Пример:** `PRODUCT → CATEGORY` - множество продуктов относятся к одной категории.
 
 ---
 
-### N:N (Many-to-Many) — Перекрестные связи
+### N:N (Many-to-Many) - Перекрестные связи
 
 Много записей слева связаны со многими справа.  
 **Пример:** `STUDENT ↔ COURSE` через `Enrollment`.  
@@ -100,16 +100,23 @@ erDiagram
         int height "Высота в пикселях"
     }
 
+    LOCATION {
+        int locationId PK "Уникальный идентификатор"
+        string address "Полный адрес"
+        string additional_notes "Дополнительные заметки (например, особенности расположения)"
+        double latitude "Широта"
+        double longitude "Долгота"
+    }
+
     STATUS["STATUS: ENUM"] {
         string status "PK: ONGOING | IN_PROGRESS | COMPLETED"
     }
 ```
 
-**Характеристики:**
-
-- **TAG** — таблица интересов/категорий
-- **COVER** — метаданные обложек событий
-- **STATUS** — перечисление доступных статусов событий (enum)
+- **TAG** - таблица интересов/категорий
+- **COVER** - метаданные обложек событий
+- **LOCATION** - метаданные адресов событий
+- **STATUS** - перечисление доступных статусов событий (enum)
 
 ---
 
@@ -142,7 +149,7 @@ erDiagram
         string coordinatorContact "Email/телефон координатора"
         int maxCapacity "Максимум участников (>0)"
         long dateTimestamp "Unix timestamp события (индексировано)"
-        string address "Адрес события"
+        int locationId FK "Ссылка на LOCATION"
     }
 
     TAG {
@@ -153,6 +160,16 @@ erDiagram
     COVER {
         int coverId PK
         string link
+        int width
+        int height
+    }
+
+    LOCATION {
+        int locationId PK
+        string address
+        string additional_notes
+        double latitude
+        double longitude
     }
 
     STATUS["STATUS: ENUM"] {
@@ -160,9 +177,11 @@ erDiagram
     }
 
     USER }|--|{ TAG: "N:N: interests (junction table)"
+    USER }|--|{ EVENT: "N:N user_events (junction table)"
     EVENT }|--|{ TAG: "N:N: tags (junction table)"
     EVENT ||--|| COVER: "1:1: cover_image"
     EVENT }|--|| STATUS: "N:1 status"
+    EVENT }|--|| LOCATION: "N:1 location"
 ```
 
 ---
@@ -176,9 +195,9 @@ erDiagram
 | Поле          | Тип          | Ключ | Индекс | Описание                       |
 |---------------|--------------|------|--------|--------------------------------|
 | `userId`      | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
-| `name`        | VARCHAR(100) | —    | —      | Имя (обязательное поле)        |
-| `middleName`  | VARCHAR(100) | —    | —      | Отчество (NULL разрешён)       |
-| `surname`     | VARCHAR(100) | —    | —      | Фамилия (обязательное поле)    |
+| `name`        | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
+| `middleName`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
+| `surname`     | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
 | `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
 | `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
 
@@ -209,19 +228,19 @@ CREATE INDEX idx_user_name ON USER (surname, name);
 
 ### 2. EVENT
 
-**Назначение:** Центральная сущность — описывает события и их метаданные.
+**Назначение:** Центральная сущность - описывает события и их метаданные.
 
-| Поле                 | Тип          | Ключ | Индекс | Описание                                 |
-|----------------------|--------------|------|--------|------------------------------------------|
-| `eventId`            | INT          | PK   | ✓      | AUTO_INCREMENT                           |
-| `status`             | ENUM         | —    | ✓      | ONGOING \| IN_PROGRESS \| COMPLETED      |
-| `name`               | VARCHAR(255) | —    | ✓      | Название события (поиск)                 |
-| `description`        | TEXT         | —    | —      | Описание события                         |
-| `coverId`            | INT          | FK   | —      | Ссылка на COVER (1:1)                    |
-| `coordinatorContact` | VARCHAR(255) | —    | —      | Email или телефон                        |
-| `maxCapacity`        | INT          | —    | —      | Лимит участников                         |
-| `dateTimestamp`      | BIGINT       | —    | ✓      | Unix timestamp (критично для сортировки) |
-| `address`            | VARCHAR(500) | —    | —      | Полный адрес (для геолокации)            |
+| Поле                 | Тип          | Ключ | Индекс | Описание                            |
+|----------------------|--------------|------|--------|-------------------------------------|
+| `eventId`            | INT          | PK   | ✓      | AUTO_INCREMENT                      |
+| `status`             | ENUM         | -    | ✓      | ONGOING \| IN_PROGRESS \| COMPLETED |
+| `name`               | VARCHAR(255) | -    | ✓      | Название события (поиск)            |
+| `description`        | TEXT         | -    | -      | Описание события                    |
+| `coverId`            | INT          | FK   | -      | Ссылка на COVER (1:1)               |
+| `coordinatorContact` | VARCHAR(255) | -    | -      | Email или телефон                   |
+| `maxCapacity`        | INT          | -    | -      | Лимит участников                    |
+| `dateTimestamp`      | BIGINT       | -    | ✓      | Unix timestamp                      |
+| `locationId`         | INT          | FK   | -      | Ссылка на LOCATION (N:1)            |
 
 **Ограничения:**
 
@@ -239,6 +258,7 @@ CREATE INDEX idx_event_status ON EVENT (status);
 CREATE INDEX idx_event_date ON EVENT (dateTimestamp DESC);
 CREATE INDEX idx_event_name ON EVENT (name);
 CREATE INDEX idx_event_cover ON EVENT (coverId);
+CREATE INDEX idx_event_location ON EVENT (locationId);
 ```
 
 **Примечание по dateTimestamp:**
@@ -255,9 +275,9 @@ CREATE INDEX idx_event_cover ON EVENT (coverId);
 | Поле      | Тип           | Ключ | Индекс | Описание        |
 |-----------|---------------|------|--------|-----------------|
 | `coverId` | INT           | PK   | ✓      | AUTO_INCREMENT  |
-| `link`    | VARCHAR(2048) | —    | —      | URL обложки     |
-| `width`   | INT           | —    | —      | Ширина пикселей |
-| `height`  | INT           | —    | —      | Высота пиксели  |
+| `link`    | VARCHAR(2048) | -    | -      | URL обложки     |
+| `width`   | INT           | -    | -      | Ширина пикселей |
+| `height`  | INT           | -    | -      | Высота пиксели  |
 
 **Ограничения:**
 
@@ -305,6 +325,20 @@ CREATE INDEX idx_tag_name ON TAG (tagName);
 
 ---
 
+### 6. LOCATION
+
+**Назначение:** Метаданные адреса события.
+
+| Поле               | Тип          | Ключ | Индекс | Описание                               |
+|--------------------|--------------|------|--------|----------------------------------------|
+| `locationId`       | INT          | PK   | ✓      | AUTO_INCREMENT                         |
+| `address`          | VARCHAR(512) | -    | -      | Полный адрес проведения                |
+| `additional_notes` | VARCHAR(512) | -    | -      | Дополнительные заметки по расположению |
+| `latitude`         | FLOAT        | -    | -      | Широта                                 |
+| `longitude`        | FLOAT        | -    | -      | Долгота                                |
+
+---
+
 ## Связи между сущностями
 
 ### 1:1: EVENT → COVER
@@ -328,6 +362,22 @@ ALTER TABLE EVENT
 ```
 
 **Примечание:** Если обложка удалена, событие остаётся (обложка может быть переиспользована).
+
+### N:1: EVENT → LOCATION
+
+```
+EVENT (N) ───── (1) LOCATION
+```
+
+- Несколько событий могут иметь одну локацию
+
+**SQL:**
+
+```sql
+ALTER TABLE EVENT
+   ADD CONSTRAINT fk_event_location
+      FOREIGN KEY (locationId) REFERENCES LOCATION (locationId);
+```
 
 ---
 
@@ -357,6 +407,36 @@ CREATE TABLE USER_TAG
 
 CREATE INDEX idx_user_tags ON USER_TAG (userId);
 CREATE INDEX idx_tag_users ON USER_TAG (tagId);
+```
+
+---
+
+### N:N: USER ↔ EVENT
+
+```
+USER (N) ───── (N) EVENT
+     through: USER_EVENTS
+```
+
+- Пользователь может участвовать в нескольких событиях
+- Требует промежуточной таблицы
+
+**Структура промежуточной таблицы:**
+
+```sql
+CREATE TABLE USER_EVENTS
+(
+    userId  INT NOT NULL,
+    eventId INT NOT NULL,
+    addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (userId, eventId),
+    FOREIGN KEY (eventId) REFERENCES EVENT (eventId) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES USERS (userId) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_event_users ON USER_EVENTS (eventId);
+CREATE INDEX idx_user_events ON USER_EVENTS (userId);
 ```
 
 ---
