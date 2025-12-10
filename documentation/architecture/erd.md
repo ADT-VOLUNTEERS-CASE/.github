@@ -159,10 +159,10 @@ erDiagram
         string status PK
     }
 
-    USER }|--|| TAG: "N:N: interests (junction table)"
-    EVENT }|--|| TAG: "N:N: tags (junction table)"
+    USER }|--|{ TAG: "N:N: interests (junction table)"
+    EVENT }|--|{ TAG: "N:N: tags (junction table)"
     EVENT ||--|| COVER: "1:1: cover_image"
-    EVENT }|--|| STATUS: ""
+    EVENT }|--|| STATUS: "N:1 status"
 ```
 
 ---
