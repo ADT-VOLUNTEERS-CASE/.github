@@ -106,57 +106,57 @@ erDiagram
 
 ```mermaid
 erDiagram
-    USER {
-        int userId PK "Уникальный идентификатор"
-        string name "Имя (не NULL)"
-        string middleName "Отчество (опционально)"
-        string surname "Фамилия (не NULL)"
-        string phoneNumber UK "Телефон (уникальный, индексировано)"
-        string email UK "Email (уникальный, индексировано)"
-    }
+   USER {
+      int userId PK "Уникальный идентификатор"
+      string firstname "Имя (не NULL)"
+      string lastname "Фамилия (не NULL)"
+      string patronymic "Отчество (опционально)"
+      string phoneNumber UK "Телефон (уникальный, индексировано)"
+      string email UK "Email (уникальный, индексировано)"
+   }
 
-    EVENT {
-        int eventId PK "Уникальный идентификатор"
-        string status "Enum: ONGOING | IN_PROGRESS | COMPLETED"
-        string name "Название события (не NULL)"
-        string description "Описание события"
-        int coverId FK "Ссылка на COVER (опционально)"
-        string coordinatorContact "Email/телефон координатора"
-        int maxCapacity "Максимум участников (>0)"
-        long dateTimestamp "Unix timestamp события (индексировано)"
-        int locationId FK "Ссылка на LOCATION"
-    }
+   EVENT {
+      int eventId PK "Уникальный идентификатор"
+      string status "Enum: ONGOING | IN_PROGRESS | COMPLETED"
+      string name "Название события (не NULL)"
+      string description "Описание события"
+      int coverId FK "Ссылка на COVER (опционально)"
+      string coordinatorContact "Email/телефон координатора"
+      int maxCapacity "Максимум участников (>0)"
+      long dateTimestamp "Unix timestamp события (индексировано)"
+      int locationId FK "Ссылка на LOCATION"
+   }
 
-    TAG {
-        int tagId PK
-        string tagName UK
-    }
+   TAG {
+      int tagId PK
+      string tagName UK
+   }
 
-    COVER {
-        int coverId PK
-        string link
-        int width
-        int height
-    }
+   COVER {
+      int coverId PK
+      string link
+      int width
+      int height
+   }
 
-    LOCATION {
-        int locationId PK
-        string address
-        string additional_notes
-        double latitude
-        double longitude
-    }
+   LOCATION {
+      int locationId PK
+      string address
+      string additional_notes
+      double latitude
+      double longitude
+   }
 
-    STATUS["STATUS: ENUM"] {
-        string status PK
-    }
+   STATUS["STATUS: ENUM"] {
+      string status PK
+   }
 
-    USER }|--|{ TAG: "N:N: interests (junction table)"
-    USER }|--|{ EVENT: "N:N user_events (junction table)"
-    EVENT }|--|{ TAG: "N:N: tags (junction table)"
-    EVENT ||--|| COVER: "1:1: cover_image"
-    EVENT }|--|| STATUS: "N:1 status"
-    EVENT }|--|| LOCATION: "N:1 location"
+   USER }|--|{ TAG: "N:N: interests (junction table)"
+   USER }|--|{ EVENT: "N:N user_events (junction table)"
+   EVENT }|--|{ TAG: "N:N: tags (junction table)"
+   EVENT ||--|| COVER: "1:1: cover_image"
+   EVENT }|--|| STATUS: "N:1 status"
+   EVENT }|--|| LOCATION: "N:1 location"
 ```
 
 ---
@@ -170,9 +170,9 @@ erDiagram
 | Поле          | Тип          | Ключ | Индекс | Описание                       |
 |---------------|--------------|------|--------|--------------------------------|
 | `userId`      | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
-| `name`        | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
-| `middleName`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
-| `surname`     | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
+| `firstname`   | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
+| `lastname`    | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
+| `patronymic`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
 | `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
 | `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
 
@@ -190,7 +190,7 @@ CONSTRAINT user_email_unique UNIQUE (email)
 ```sql
 CREATE INDEX idx_user_email ON USER (email);
 CREATE INDEX idx_user_phone ON USER (phoneNumber);
-CREATE INDEX idx_user_name ON USER (surname, name);
+CREATE INDEX idx_user_fullname ON USER (firstname, lastname, patronymic);
 ```
 
 **Дополнительно:**
