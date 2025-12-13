@@ -89,6 +89,11 @@ erDiagram
         double latitude "Широта"
         double longitude "Долгота"
     }
+    
+    USER_AUTH {
+        int userId
+        string hash
+    }
 
     STATUS["STATUS: ENUM"] {
         string status "PK: ONGOING | IN_PROGRESS | COMPLETED"
@@ -106,6 +111,11 @@ erDiagram
 
 ```mermaid
 erDiagram
+   USER_AUTH {
+      int userId
+      string hash
+   }
+   
    USER {
       int userId PK "Уникальный идентификатор"
       string firstname "Имя (не NULL)"
@@ -153,6 +163,8 @@ erDiagram
 
    USER }|--|{ TAG: "N:N: interests (junction table)"
    USER }|--|{ EVENT: "N:N user_events (junction table)"
+   USER ||--|| USER_AUTH: "1:1 Hashes"
+   
    EVENT }|--|{ TAG: "N:N: tags (junction table)"
    EVENT ||--|| COVER: "1:1: cover_image"
    EVENT }|--|| STATUS: "N:1 status"
@@ -325,7 +337,7 @@ EVENT (1) ──── (1) COVER
 
 - Одно событие имеет максимум одну обложку
 - Допустимо значение NULL
-- Каскадное удаление
+- Каскадное удаление/обновление
 
 **SQL:**
 
@@ -335,8 +347,6 @@ ALTER TABLE EVENT
         FOREIGN KEY (coverId) REFERENCES COVER (coverId)
             ON DELETE CASCADE ON UPDATE CASCADE;
 ```
-
-**Примечание:** Если обложка удалена, событие остаётся (обложка может быть переиспользована).
 
 ### N:1: EVENT → LOCATION
 
@@ -353,6 +363,17 @@ ALTER TABLE EVENT
    ADD CONSTRAINT fk_event_location
       FOREIGN KEY (locationId) REFERENCES LOCATION (locationId);
 ```
+
+---
+
+### 1:1: USER → USER_AUTH
+
+```
+USER (1) ──── (1) USER_AUTH
+         
+```
+
+- Один пользователь имеет один хеш ключа
 
 ---
 
@@ -385,6 +406,7 @@ CREATE INDEX idx_tag_users ON USER_TAG (tagId);
 ```
 
 ---
+
 
 ### N:N: USER ↔ EVENT
 
