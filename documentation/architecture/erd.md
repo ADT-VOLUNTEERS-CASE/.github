@@ -49,19 +49,6 @@
 **Графические обозначения:**
 
 ```mermaid
-%%{init: {'theme':'base', 'themeCSS': 
-'.entityBox-USER, .entityBox-PROFILE { fill: #e1f5fe, stroke: #01579b, stroke-width: 4px; }
-.entityTitleText-USER, .entityTitleText-PROFILE { fill: #01579b; font-weight: bold; }
-.entityBox-DEPARTMENT, .entityBox-EMPLOYEE { fill: #f3e5f5, stroke: #4a148c, stroke-width: 4px; }
-.entityTitleText-DEPARTMENT, .entityTitleText-EMPLOYEE { fill: #4a148c; font-weight: bold; }
-.entityBox-PRODUCT, .entityBox-CATEGORY { fill: #e8f5e8, stroke: #1b5e20, stroke-width: 4px; }
-.entityTitleText-PRODUCT, .entityTitleText-CATEGORY { fill: #1b5e20; font-weight: bold; }
-.entityBox-STUDENT, .entityBox-COURSE { fill: #fff3e0, stroke: #e65100, stroke-width: 4px; }
-.entityTitleText-STUDENT, .entityTitleText-COURSE { fill: #e65100; font-weight: bold; }
-.relLabelText-1to1 { font-size: 14px; font-weight: bold; fill: #01579b; }
-.relLabelText-1tomany { font-size: 14px; font-weight: bold; fill: #4a148c; }
-.relLabelText-manyto1 { font-size: 14px; font-weight: bold; fill: #1b5e20; }
-.relLabelText-manytomany { font-size: 14px; font-weight: bold; fill: #e65100; }'}}%%
 erDiagram
 %% One-to-One (Blue group)
     USER ||--|| PROFILE: "1:1"
@@ -82,11 +69,6 @@ erDiagram
 ### Справочные таблицы (Reference Data)
 
 ```mermaid
-%%{init: {'theme':'base', 'themeCSS': 
-'.entityBox-TAG, .entityBox-COVER, .entityBox-STATUS { fill: #f5f5f5, stroke: #757575, stroke-width: 2px; }
-.entityTitleText-TAG, .entityTitleText-COVER, .entityTitleText-STATUS { fill: #212121; font-weight: bold; }
-.attributeText { font-size: 13px; }
-'}}%%
 erDiagram
     TAG {
         int tagId PK "Уникальный идентификатор"
@@ -123,13 +105,6 @@ erDiagram
 ### Основные сущности
 
 ```mermaid
-%%{init: {'theme':'base', 'themeCSS': 
-'.entityBox-USER { fill: #e3f2fd, stroke: #1565c0, stroke-width: 3px; }
-.entityTitleText-USER { fill: #1565c0; font-weight: bold; }
-.entityBox-EVENT { fill: #fff3e0, stroke: #e65100, stroke-width: 3px; }
-.entityTitleText-EVENT { fill: #e65100; font-weight: bold; }
-.attributeText { font-size: 12px; }
-'}}%%
 erDiagram
     USER {
         int userId PK "Уникальный идентификатор"
