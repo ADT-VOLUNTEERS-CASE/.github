@@ -137,6 +137,9 @@ erDiagram
       string patronymic "Отчество (опционально)"
       string phoneNumber UK "Телефон (уникальный, индексировано)"
       string email UK "Email (уникальный, индексировано)"
+      
+      bool isAdmin
+      bool isCoordinator
 
       long createdAt "Timestamp создания"
       long updatedAt "Timestamp обновления"
@@ -163,7 +166,7 @@ erDiagram
       int tagId PK
       string tagName UK
    }
-
+    
    FILES {
       int fileId PK
       string fileType
@@ -172,6 +175,13 @@ erDiagram
 
       long createdAt "Timestamp создания"
       long deletedAt "Timestamp удаления"
+   }
+   
+   COORDINTAOR {
+       int userId PK
+       string workLocation
+       string phoneNumber
+       string email
    }
 
    LOCATION {
@@ -185,7 +195,7 @@ erDiagram
       long updatedAt "Timestamp обновления"
       long deletedAt "Timestamp удаления"
    }
-
+   
    STATUS["STATUS: ENUM"] {
       string status PK
    }
@@ -217,9 +227,9 @@ erDiagram
 | `patronymic`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
 | `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
 | `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
-| `createdAt`   | LONG         |      |        | Timestamp создания             |
-| `updatedAt`   | LONG         |      |        | Timestamp обновления           |
-| `deletedAt`   | LONG         |      |        | Timestamp удаления             |
+| `createdAt`   | LONG         | -    | -      | Timestamp создания             |
+| `updatedAt`   | LONG         | -    | -      | Timestamp обновления           |
+| `deletedAt`   | LONG         | -    | -      | Timestamp удаления             |
 
 **Дополнительно:**
 
@@ -227,7 +237,18 @@ erDiagram
 
 ---
 
-### 2. EVENT
+### 2. COORDINATOR
+
+**Назначение:** Хранит информацию об участниках системы.
+
+| Поле           | Тип          | Ключ | Индекс | Описание                       |
+|----------------|--------------|------|--------|--------------------------------|
+| `userId`       | INT          | PK   | ✓      | Ссылка на USER, primary key    |
+| `workLocation` | VARCHAR(255) | -    | -      | Место работы                   |
+| `email`        | VARCHAR(100) | -    | -      | Уникальное, валидация RFC 5322 |
+| `phoneNumber`  | VARCHAR(20)  | -    | -      | Уникальное, валидация E.164    |
+
+### 3. EVENT
 
 **Назначение:** Центральная сущность - описывает события и их метаданные.
 
@@ -253,7 +274,7 @@ erDiagram
 
 ---
 
-### 3. FILES
+### 4. FILES
 
 **Назначение:** Метаданные файлов в S3 хранилище.
 
@@ -267,7 +288,7 @@ erDiagram
 
 ---
 
-### 4. TAG
+### 5. TAG
 
 **Назначение:** Теги для классификации событий.
 
@@ -278,7 +299,7 @@ erDiagram
 
 ---
 
-### 5. STATUS (Перечисление)
+### 6. STATUS (Перечисление)
 
 **Назначение:** Статусы событий.
 
@@ -290,7 +311,7 @@ erDiagram
 
 ---
 
-### 6. LOCATION
+### 7. LOCATION
 
 **Назначение:** Метаданные адреса события.
 
