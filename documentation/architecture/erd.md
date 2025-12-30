@@ -208,18 +208,20 @@ erDiagram
 
 **Назначение:** Хранит информацию об участниках системы.
 
-| Поле             | Тип          | Ключ | Индекс | Описание                       |
-|------------------|--------------|------|--------|--------------------------------|
-| `userId`         | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
-| `firstname`      | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
-| `lastname`       | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
-| `patronymic`     | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
-| `phoneNumber`    | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
-| `email`          | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
-| `password_hash ` | VARCHAR(255) | -    | -      | Хеш пароля                     |
-| `createdAt`      | LONG         | -    | -      | Timestamp создания             |
-| `updatedAt`      | LONG         | -    | -      | Timestamp обновления           |
-| `deletedAt`      | LONG         | -    | -      | Timestamp удаления             |
+| Поле             | Тип          | Ключ | Индекс | Описание                                 |
+|------------------|--------------|------|--------|------------------------------------------|
+| `userId`         | INT          | PK   | ✓      | AUTO_INCREMENT, primary key              |
+| `firstname`      | VARCHAR(100) | -    | -      | Имя (обязательное поле)                  |
+| `lastname`       | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)              |
+| `patronymic`     | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)                 |
+| `phoneNumber`    | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164              |
+| `email`          | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322           |
+| `password_hash ` | VARCHAR(255) | -    | -      | Хеш пароля                               |
+| `isAdmin`        | BOOL         | -    | -      | Является ли пользователь администратором |
+| `isCoordinator`  | BOOL         | -    | -      | Является ли пользователь координатором   |
+| `createdAt`      | LONG         | -    | -      | Timestamp создания                       |
+| `updatedAt`      | LONG         | -    | -      | Timestamp обновления                     |
+| `deletedAt`      | LONG         | -    | -      | Timestamp удаления                       |
 
 ---
 
