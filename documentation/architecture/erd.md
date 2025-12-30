@@ -75,6 +75,9 @@ erDiagram
         int fileId PK "Уникальный идентификатор"
         string link "URL файла"
         varchar metadata "Json (произвольные данные) файла в BASE64"
+
+       long createdAt "Timestamp создания"
+       long deletedAt "Timestamp удаления"
     }
 
     LOCATION {
@@ -83,6 +86,9 @@ erDiagram
         string additional_notes "Дополнительные заметки (например, особенности расположения)"
         double latitude "Широта"
         double longitude "Долгота"
+
+       long createdAt "Timestamp создания"
+       long deletedAt "Timestamp удаления"
     }
     
     USER_AUTH {
@@ -131,6 +137,10 @@ erDiagram
       string patronymic "Отчество (опционально)"
       string phoneNumber UK "Телефон (уникальный, индексировано)"
       string email UK "Email (уникальный, индексировано)"
+
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
    }
    
    EVENT {
@@ -143,6 +153,10 @@ erDiagram
       int maxCapacity "Максимум участников (>0)"
       long dateTimestamp "Unix timestamp события (индексировано)"
       int locationId FK "Ссылка на LOCATION"
+
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
    }
 
    TAG {
@@ -155,6 +169,9 @@ erDiagram
       string fileType
       string link
       varchar metadata
+
+      long createdAt "Timestamp создания"
+      long deletedAt "Timestamp удаления"
    }
 
    LOCATION {
@@ -163,6 +180,10 @@ erDiagram
       string additional_notes
       double latitude
       double longitude
+      
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
    }
 
    STATUS["STATUS: ENUM"] {
@@ -196,12 +217,13 @@ erDiagram
 | `patronymic`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
 | `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
 | `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
+| `createdAt`   | LONG         |      |        | Timestamp создания             |
+| `updatedAt`   | LONG         |      |        | Timestamp обновления           |
+| `deletedAt`   | LONG         |      |        | Timestamp удаления             |
 
 **Дополнительно:**
 
 - Хешировать пароли отдельно в таблице `USER_AUTH`
-- Реализовать системные поля `createdAt`, `updatedAt`
-- Реализовать Soft delete через `deletedAt` флаг
 
 ---
 
@@ -220,6 +242,9 @@ erDiagram
 | `maxCapacity`        | INT          | -    | -      | Лимит участников                    |
 | `dateTimestamp`      | BIGINT       | -    | ✓      | Unix timestamp                      |
 | `locationId`         | INT          | FK   | -      | Ссылка на LOCATION (N:1)            |
+| `createdAt`          | LONG         | -    | -      | Timestamp создания                  |
+| `updatedAt`          | LONG         | -    | -      | Timestamp обновления                |
+| `deletedAt`          | LONG         | -    | -      | Timestamp удаления                  |
 
 **Примечание по dateTimestamp:**
 
@@ -232,11 +257,13 @@ erDiagram
 
 **Назначение:** Метаданные файлов в S3 хранилище.
 
-| Поле       | Тип                | Ключ | Индекс | Описание                                  |
-|------------|--------------------|------|--------|-------------------------------------------|
-| `fileId`   | INT                | PK   | ✓      | AUTO_INCREMENT                            |
-| `link`     | VARCHAR(2048)      | -    | -      | S3 URL на файл                            |
-| `metadata` | VARCHAR(unlimited) | -    | -      | Json (произвольные данные) файла в BASE64 |
+| Поле        | Тип                | Ключ | Индекс | Описание                                  |
+|-------------|--------------------|------|--------|-------------------------------------------|
+| `fileId`    | INT                | PK   | ✓      | AUTO_INCREMENT                            |
+| `link`      | VARCHAR(2048)      | -    | -      | S3 URL на файл                            |
+| `metadata`  | VARCHAR(unlimited) | -    | -      | Json (произвольные данные) файла в BASE64 |
+| `createdAt` | LONG               | -    | -      | Timestamp создания                        |
+| `deletedAt` | LONG               | -    | -      | Timestamp удаления                        |
 
 ---
 
@@ -274,7 +301,9 @@ erDiagram
 | `additional_notes` | VARCHAR(512) | -    | -      | Дополнительные заметки по расположению |
 | `latitude`         | FLOAT        | -    | -      | Широта                                 |
 | `longitude`        | FLOAT        | -    | -      | Долгота                                |
-
+| `createdAt`        | LONG         | -    | -      | Timestamp создания                     |
+| `updatedAt`        | LONG         | -    | -      | Timestamp обновления                   |
+| `deletedAt`        | LONG         | -    | -      | Timestamp удаления                     |
 ---
 
 ## Связи между сущностями
