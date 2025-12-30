@@ -1,7 +1,7 @@
 # Модель данных (ERD)
 
 **Версия:** 1.1
-**Дата обновления:** Январь 2025
+**Дата обновления:** Декабрь 2025
 
 ---
 
@@ -90,11 +90,6 @@ erDiagram
        long createdAt "Timestamp создания"
        long deletedAt "Timestamp удаления"
     }
-    
-    USER_AUTH {
-        int userId
-        string hash
-    }
 
     STATUS["STATUS: ENUM"] {
         string status "PK: ONGOING | IN_PROGRESS | COMPLETED"
@@ -123,11 +118,6 @@ erDiagram
       long rejectedAt "Timestamp отклонения"
       long revokedAt "Timestamp отзыва"
       long deletedAt "Timestamp удаления"
-   }
-   
-   USER_AUTH {
-      int userId
-      string hash
    }
    
    USER {
@@ -202,7 +192,6 @@ erDiagram
 
    USER }|--|{ TAG: "N:N: interests (junction table)"
    USER }|--|{ USER_EVENTS: "N:N"
-   USER ||--|| USER_AUTH: "1:1 Hashes"
    
    EVENT }|--|{ USER_EVENTS: "N:N"
    EVENT }|--|{ TAG: "N:N: tags (junction table)"
@@ -219,21 +208,18 @@ erDiagram
 
 **Назначение:** Хранит информацию об участниках системы.
 
-| Поле          | Тип          | Ключ | Индекс | Описание                       |
-|---------------|--------------|------|--------|--------------------------------|
-| `userId`      | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
-| `firstname`   | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
-| `lastname`    | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
-| `patronymic`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
-| `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
-| `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
-| `createdAt`   | LONG         | -    | -      | Timestamp создания             |
-| `updatedAt`   | LONG         | -    | -      | Timestamp обновления           |
-| `deletedAt`   | LONG         | -    | -      | Timestamp удаления             |
-
-**Дополнительно:**
-
-- Хешировать пароли отдельно в таблице `USER_AUTH`
+| Поле             | Тип          | Ключ | Индекс | Описание                       |
+|------------------|--------------|------|--------|--------------------------------|
+| `userId`         | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
+| `firstname`      | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
+| `lastname`       | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
+| `patronymic`     | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
+| `phoneNumber`    | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
+| `email`          | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
+| `password_hash ` | VARCHAR(255) | -    | -      | Хеш пароля                     |
+| `createdAt`      | LONG         | -    | -      | Timestamp создания             |
+| `updatedAt`      | LONG         | -    | -      | Timestamp обновления           |
+| `deletedAt`      | LONG         | -    | -      | Timestamp удаления             |
 
 ---
 
@@ -351,17 +337,6 @@ EVENT (N) ───── (1) LOCATION
 
 ---
 
-### 1:1: USER → USER_AUTH
-
-```
-USER (1) ──── (1) USER_AUTH
-         
-```
-
-- Один пользователь имеет один хеш ключа
-
----
-
 ### N:N: USER ↔ TAG
 
 ```
@@ -406,4 +381,4 @@ EVENT (N) ───── (N) TAG
 | Версия | Дата     | Изменения                                                                                           |
 |--------|----------|-----------------------------------------------------------------------------------------------------|
 | 1.0    | Дек 2025 | Первоначальная версия                                                                               |
-| 1.1    | Янв 2025 | Исправления в соответствии с [запросом #5](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/5) |
+| 1.1    | Дек 2025 | Исправления в соответствии с [запросом #5](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/5) |
