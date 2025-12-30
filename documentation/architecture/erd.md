@@ -1,6 +1,6 @@
 # Модель данных (ERD)
 
-**Версия:** 1.0  
+**Версия:** 1.1
 **Дата обновления:** Декабрь 2025
 
 ---
@@ -21,7 +21,7 @@
 
 ### 1:1 (One-to-One) - Уникальные связи
 
-Одна запись слева соответствует ровно одной справа.  
+Одна запись слева соответствует ровно одной справа.
 **Пример:** `USER ↔ PROFILE` - каждый пользователь имеет ровно один профиль.
 
 ---
@@ -50,13 +50,9 @@
 
 ```mermaid
 erDiagram
-%% One-to-One (Blue group)
     USER ||--|| PROFILE: "1:1"
-%% One-to-Many (Purple group)  
     DEPARTMENT ||--o{ EMPLOYEE: "1:N"
-%% Many-to-One (Green group)
     PRODUCT }o--|| CATEGORY: "N:1"
-%% Many-to-Many (Orange group)
     STUDENT }o--o{ COURSE: "N:N (Enrollment)"
 ```
 
@@ -75,11 +71,13 @@ erDiagram
         string tagName UK "Название (уникальное, индексировано)"
     }
 
-    COVER {
-        int coverId PK "Уникальный идентификатор"
-        string link "URL обложки"
-        int width "Ширина в пикселях"
-        int height "Высота в пикселях"
+    FILES {
+        int fileId PK "Уникальный идентификатор"
+        string link "URL файла"
+        varchar metadata "Json (произвольные данные) файла в BASE64"
+
+       long createdAt "Timestamp создания"
+       long deletedAt "Timestamp удаления"
     }
 
     LOCATION {
@@ -88,11 +86,9 @@ erDiagram
         string additional_notes "Дополнительные заметки (например, особенности расположения)"
         double latitude "Широта"
         double longitude "Долгота"
-    }
-    
-    USER_AUTH {
-        int userId
-        string hash
+
+       long createdAt "Timestamp создания"
+       long deletedAt "Timestamp удаления"
     }
 
     STATUS["STATUS: ENUM"] {
@@ -101,7 +97,7 @@ erDiagram
 ```
 
 - **TAG** - таблица интересов/категорий
-- **COVER** - метаданные обложек событий
+- **FILES** - метаданные фалов S3
 - **LOCATION** - метаданные адресов событий
 - **STATUS** - перечисление доступных статусов событий (enum)
 
@@ -111,9 +107,17 @@ erDiagram
 
 ```mermaid
 erDiagram
-   USER_AUTH {
-      int userId
-      string hash
+   USER_EVENTS["USER - USER_EVENTS (JUNCTION TABLE) - EVENT"] {
+      bool accepted "Заявка принята"
+      bool rejected "Заявка отклонена организатором"
+      bool revoked "Пользователь отозвал заявку"
+      
+      string reject_reason "Причина отказа (Nullable)"
+      
+      long createdAt "Timestamp создания"
+      long rejectedAt "Timestamp отклонения"
+      long revokedAt "Timestamp отзыва"
+      long deletedAt "Timestamp удаления"
    }
    
    USER {
@@ -123,30 +127,51 @@ erDiagram
       string patronymic "Отчество (опционально)"
       string phoneNumber UK "Телефон (уникальный, индексировано)"
       string email UK "Email (уникальный, индексировано)"
-   }
+      
+      bool isAdmin
+      bool isCoordinator
 
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
+   }
+   
    EVENT {
       int eventId PK "Уникальный идентификатор"
       string status "Enum: ONGOING | IN_PROGRESS | COMPLETED"
       string name "Название события (не NULL)"
       string description "Описание события"
-      int coverId FK "Ссылка на COVER (опционально)"
+      int coverId FK "Ссылка на FILES (опционально)"
       string coordinatorContact "Email/телефон координатора"
       int maxCapacity "Максимум участников (>0)"
       long dateTimestamp "Unix timestamp события (индексировано)"
       int locationId FK "Ссылка на LOCATION"
+
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
    }
 
    TAG {
       int tagId PK
       string tagName UK
    }
-
-   COVER {
-      int coverId PK
+    
+   FILES {
+      int fileId PK
+      string fileType
       string link
-      int width
-      int height
+      varchar metadata
+
+      long createdAt "Timestamp создания"
+      long deletedAt "Timestamp удаления"
+   }
+   
+   COORDINTAOR {
+       int userId PK
+       string workLocation
+       string phoneNumber
+       string email
    }
 
    LOCATION {
@@ -155,18 +180,22 @@ erDiagram
       string additional_notes
       double latitude
       double longitude
+      
+      long createdAt "Timestamp создания"
+      long updatedAt "Timestamp обновления"
+      long deletedAt "Timestamp удаления"
    }
-
+   
    STATUS["STATUS: ENUM"] {
       string status PK
    }
 
    USER }|--|{ TAG: "N:N: interests (junction table)"
-   USER }|--|{ EVENT: "N:N user_events (junction table)"
-   USER ||--|| USER_AUTH: "1:1 Hashes"
+   USER }|--|{ USER_EVENTS: "N:N"
    
+   EVENT }|--|{ USER_EVENTS: "N:N"
    EVENT }|--|{ TAG: "N:N: tags (junction table)"
-   EVENT ||--|| COVER: "1:1: cover_image"
+   EVENT ||--|| FILES: "1:1: cover_image"
    EVENT }|--|| STATUS: "N:1 status"
    EVENT }|--|| LOCATION: "N:1 location"
 ```
@@ -179,41 +208,35 @@ erDiagram
 
 **Назначение:** Хранит информацию об участниках системы.
 
-| Поле          | Тип          | Ключ | Индекс | Описание                       |
-|---------------|--------------|------|--------|--------------------------------|
-| `userId`      | INT          | PK   | ✓      | AUTO_INCREMENT, primary key    |
-| `firstname`   | VARCHAR(100) | -    | -      | Имя (обязательное поле)        |
-| `lastname`    | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)    |
-| `patronymic`  | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)       |
-| `phoneNumber` | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164    |
-| `email`       | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322 |
-
-**Ограничения:**
-
-```sql
-CONSTRAINT user_name_not_empty CHECK (LENGTH(name) > 0)
-CONSTRAINT user_email_format CHECK (email LIKE '%@%.%')
-CONSTRAINT user_phone_unique UNIQUE (phoneNumber)
-CONSTRAINT user_email_unique UNIQUE (email)
-```
-
-**Индексы:**
-
-```sql
-CREATE INDEX idx_user_email ON USER (email);
-CREATE INDEX idx_user_phone ON USER (phoneNumber);
-CREATE INDEX idx_user_fullname ON USER (firstname, lastname, patronymic);
-```
-
-**Дополнительно:**
-
-- Хешировать пароли отдельно в таблице `USER_AUTH`
-- Реализовать системные поля `createdAt`, `updatedAt`
-- Реализовать Soft delete через `deletedAt` флаг
+| Поле             | Тип          | Ключ | Индекс | Описание                                 |
+|------------------|--------------|------|--------|------------------------------------------|
+| `userId`         | INT          | PK   | ✓      | AUTO_INCREMENT, primary key              |
+| `firstname`      | VARCHAR(100) | -    | -      | Имя (обязательное поле)                  |
+| `lastname`       | VARCHAR(100) | -    | -      | Фамилия (обязательное поле)              |
+| `patronymic`     | VARCHAR(100) | -    | -      | Отчество (NULL разрешён)                 |
+| `phoneNumber`    | VARCHAR(20)  | UK   | ✓      | Уникальное, валидация E.164              |
+| `email`          | VARCHAR(255) | UK   | ✓      | Уникальное, валидация RFC 5322           |
+| `password_hash ` | VARCHAR(255) | -    | -      | Хеш пароля                               |
+| `isAdmin`        | BOOL         | -    | -      | Является ли пользователь администратором |
+| `isCoordinator`  | BOOL         | -    | -      | Является ли пользователь координатором   |
+| `createdAt`      | LONG         | -    | -      | Timestamp создания                       |
+| `updatedAt`      | LONG         | -    | -      | Timestamp обновления                     |
+| `deletedAt`      | LONG         | -    | -      | Timestamp удаления                       |
 
 ---
 
-### 2. EVENT
+### 2. COORDINATOR
+
+**Назначение:** Хранит информацию об участниках системы.
+
+| Поле           | Тип          | Ключ | Индекс | Описание                       |
+|----------------|--------------|------|--------|--------------------------------|
+| `userId`       | INT          | PK   | ✓      | Ссылка на USER, primary key    |
+| `workLocation` | VARCHAR(255) | -    | -      | Место работы                   |
+| `email`        | VARCHAR(100) | -    | -      | Уникальное, валидация RFC 5322 |
+| `phoneNumber`  | VARCHAR(20)  | -    | -      | Уникальное, валидация E.164    |
+
+### 3. EVENT
 
 **Назначение:** Центральная сущность - описывает события и их метаданные.
 
@@ -223,30 +246,14 @@ CREATE INDEX idx_user_fullname ON USER (firstname, lastname, patronymic);
 | `status`             | ENUM         | -    | ✓      | ONGOING \| IN_PROGRESS \| COMPLETED |
 | `name`               | VARCHAR(255) | -    | ✓      | Название события (поиск)            |
 | `description`        | TEXT         | -    | -      | Описание события                    |
-| `coverId`            | INT          | FK   | -      | Ссылка на COVER (1:1)               |
+| `coverId`            | INT          | FK   | -      | Ссылка на FILES (1:1)               |
 | `coordinatorContact` | VARCHAR(255) | -    | -      | Email или телефон                   |
 | `maxCapacity`        | INT          | -    | -      | Лимит участников                    |
 | `dateTimestamp`      | BIGINT       | -    | ✓      | Unix timestamp                      |
 | `locationId`         | INT          | FK   | -      | Ссылка на LOCATION (N:1)            |
-
-**Ограничения:**
-
-```sql
-CONSTRAINT event_capacity_positive CHECK (maxCapacity > 0)
-CONSTRAINT event_name_not_empty CHECK (LENGTH(name) > 0)
-CONSTRAINT event_timestamp_valid CHECK (dateTimestamp > 0)
-CONSTRAINT event_status_valid CHECK (status IN ('ONGOING', 'IN_PROGRESS', 'COMPLETED'))
-```
-
-**Индексы:**
-
-```sql
-CREATE INDEX idx_event_status ON EVENT (status);
-CREATE INDEX idx_event_date ON EVENT (dateTimestamp DESC);
-CREATE INDEX idx_event_name ON EVENT (name);
-CREATE INDEX idx_event_cover ON EVENT (coverId);
-CREATE INDEX idx_event_location ON EVENT (locationId);
-```
+| `createdAt`          | LONG         | -    | -      | Timestamp создания                  |
+| `updatedAt`          | LONG         | -    | -      | Timestamp обновления                |
+| `deletedAt`          | LONG         | -    | -      | Timestamp удаления                  |
 
 **Примечание по dateTimestamp:**
 
@@ -255,28 +262,21 @@ CREATE INDEX idx_event_location ON EVENT (locationId);
 
 ---
 
-### 3. COVER
+### 4. FILES
 
-**Назначение:** Метаданные изображений-обложек для событий.
+**Назначение:** Метаданные файлов в S3 хранилище.
 
-| Поле      | Тип           | Ключ | Индекс | Описание        |
-|-----------|---------------|------|--------|-----------------|
-| `coverId` | INT           | PK   | ✓      | AUTO_INCREMENT  |
-| `link`    | VARCHAR(2048) | -    | -      | URL обложки     |
-| `width`   | INT           | -    | -      | Ширина пикселей |
-| `height`  | INT           | -    | -      | Высота пиксели  |
-
-**Ограничения:**
-
-```sql
-CONSTRAINT cover_link_not_null NOT NULL (link)
-CONSTRAINT cover_dimensions_positive CHECK (width > 0 AND height > 0)
-CONSTRAINT cover_url_format CHECK (link LIKE 'http%')
-```
+| Поле        | Тип                | Ключ | Индекс | Описание                                  |
+|-------------|--------------------|------|--------|-------------------------------------------|
+| `fileId`    | INT                | PK   | ✓      | AUTO_INCREMENT                            |
+| `link`      | VARCHAR(2048)      | -    | -      | S3 URL на файл                            |
+| `metadata`  | VARCHAR(unlimited) | -    | -      | Json (произвольные данные) файла в BASE64 |
+| `createdAt` | LONG               | -    | -      | Timestamp создания                        |
+| `deletedAt` | LONG               | -    | -      | Timestamp удаления                        |
 
 ---
 
-### 4. TAG
+### 5. TAG
 
 **Назначение:** Теги для классификации событий.
 
@@ -285,22 +285,9 @@ CONSTRAINT cover_url_format CHECK (link LIKE 'http%')
 | `tagId`   | INT          | PK   | ✓      | AUTO_INCREMENT |
 | `tagName` | VARCHAR(100) | UK   | ✓      | UK             |
 
-**Ограничения:**
-
-```sql
-CONSTRAINT tag_name_unique UNIQUE (tagName)
-CONSTRAINT tag_name_not_empty CHECK (LENGTH(tagName) > 0)
-```
-
-**Индексы:**
-
-```sql
-CREATE INDEX idx_tag_name ON TAG (tagName);
-```
-
 ---
 
-### 5. STATUS (Перечисление)
+### 6. STATUS (Перечисление)
 
 **Назначение:** Статусы событий.
 
@@ -312,7 +299,7 @@ CREATE INDEX idx_tag_name ON TAG (tagName);
 
 ---
 
-### 6. LOCATION
+### 7. LOCATION
 
 **Назначение:** Метаданные адреса события.
 
@@ -323,15 +310,17 @@ CREATE INDEX idx_tag_name ON TAG (tagName);
 | `additional_notes` | VARCHAR(512) | -    | -      | Дополнительные заметки по расположению |
 | `latitude`         | FLOAT        | -    | -      | Широта                                 |
 | `longitude`        | FLOAT        | -    | -      | Долгота                                |
-
+| `createdAt`        | LONG         | -    | -      | Timestamp создания                     |
+| `updatedAt`        | LONG         | -    | -      | Timestamp обновления                   |
+| `deletedAt`        | LONG         | -    | -      | Timestamp удаления                     |
 ---
 
 ## Связи между сущностями
 
-### 1:1: EVENT → COVER
+### 1:1: EVENT → FILES
 
 ```
-EVENT (1) ──── (1) COVER
+EVENT (1) ──── (1) FILES
          has_cover
 ```
 
@@ -339,14 +328,6 @@ EVENT (1) ──── (1) COVER
 - Допустимо значение NULL
 - Каскадное удаление/обновление
 
-**SQL:**
-
-```sql
-ALTER TABLE EVENT
-    ADD CONSTRAINT fk_event_cover
-        FOREIGN KEY (coverId) REFERENCES COVER (coverId)
-            ON DELETE CASCADE ON UPDATE CASCADE;
-```
 
 ### N:1: EVENT → LOCATION
 
@@ -355,25 +336,6 @@ EVENT (N) ───── (1) LOCATION
 ```
 
 - Несколько событий могут иметь одну локацию
-
-**SQL:**
-
-```sql
-ALTER TABLE EVENT
-   ADD CONSTRAINT fk_event_location
-      FOREIGN KEY (locationId) REFERENCES LOCATION (locationId);
-```
-
----
-
-### 1:1: USER → USER_AUTH
-
-```
-USER (1) ──── (1) USER_AUTH
-         
-```
-
-- Один пользователь имеет один хеш ключа
 
 ---
 
@@ -388,22 +350,6 @@ USER (N) ───── (N) TAG
 - Требует промежуточной таблицы
 
 **Структура промежуточной таблицы:**
-
-```sql
-CREATE TABLE USER_TAG
-(
-    userId  INT NOT NULL,
-    tagId   INT NOT NULL,
-    addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (userId, tagId),
-    FOREIGN KEY (userId) REFERENCES USER (userId) ON DELETE CASCADE,
-    FOREIGN KEY (tagId) REFERENCES TAG (tagId) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_user_tags ON USER_TAG (userId);
-CREATE INDEX idx_tag_users ON USER_TAG (tagId);
-```
 
 ---
 
@@ -420,22 +366,6 @@ USER (N) ───── (N) EVENT
 
 **Структура промежуточной таблицы:**
 
-```sql
-CREATE TABLE USER_EVENTS
-(
-    userId  INT NOT NULL,
-    eventId INT NOT NULL,
-    addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (userId, eventId),
-    FOREIGN KEY (eventId) REFERENCES EVENT (eventId) ON DELETE CASCADE,
-    FOREIGN KEY (userId) REFERENCES USERS (userId) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_event_users ON USER_EVENTS (eventId);
-CREATE INDEX idx_user_events ON USER_EVENTS (userId);
-```
-
 ---
 
 ### N:N: EVENT ↔ TAG
@@ -448,99 +378,9 @@ EVENT (N) ───── (N) TAG
 - Событие может быть помечено несколькими тегами
 - Требует промежуточной таблицы
 
-**Структура промежуточной таблицы:**
-
-```sql
-CREATE TABLE EVENT_TAG
-(
-    eventId INT NOT NULL,
-    tagId   INT NOT NULL,
-    addedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    PRIMARY KEY (eventId, tagId),
-    FOREIGN KEY (eventId) REFERENCES EVENT (eventId) ON DELETE CASCADE,
-    FOREIGN KEY (tagId) REFERENCES TAG (tagId) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_event_tags ON EVENT_TAG (eventId);
-CREATE INDEX idx_tag_events ON EVENT_TAG (tagId);
-```
-
----
-
-## Примеры запросов (SQL)
-
-### 1. Найти все события определённой категории
-
-```sql
-SELECT DISTINCT e.*
-FROM EVENT e
-         JOIN EVENT_TAG et ON e.eventId = et.eventId
-         JOIN TAG t ON et.tagId = t.tagId
-WHERE t.tagName = 'Technology'
-  AND e.status = 'ONGOING'
-ORDER BY e.dateTimestamp ASC;
-```
-
-### 2. Получить рекомендации пользователя
-
-```sql
-SELECT DISTINCT e.eventId, e.name, e.dateTimestamp, COUNT(et.tagId) as matchCount
-FROM EVENT e
-         JOIN EVENT_TAG et ON e.eventId = et.eventId
-         JOIN TAG t ON et.tagId = t.tagId
-         JOIN USER_TAG ut ON t.tagId = ut.tagId
-WHERE ut.userId = ?
-  AND e.status = 'ONGOING'
-GROUP BY e.eventId
-ORDER BY matchCount DESC, e.dateTimestamp ASC LIMIT 10;
-```
-
-### 3. Получить информацию об организаторе события с обложкой
-
-```sql
-SELECT e.eventId, e.name, e.description, c.link, c.width, c.height
-FROM EVENT e
-         LEFT JOIN COVER c ON e.coverId = c.coverId
-WHERE e.eventId = ?;
-```
-
-### 4. Получить все теги для события
-
-```sql
-SELECT t.tagId, t.tagName
-FROM TAG t
-         JOIN EVENT_TAG et ON t.tagId = et.tagId
-WHERE et.eventId = ?
-ORDER BY t.tagName;
-```
-
----
-
-## Рекомендации по масштабированию
-
-### Производительность
-
-1. **Partitioning по `dateTimestamp`** (таблица EVENT)
-   ```sql
-   PARTITION BY RANGE (YEAR(FROM_UNIXTIME(dateTimestamp))) (
-       PARTITION p2023 VALUES LESS THAN (2024),
-       PARTITION p2024 VALUES LESS THAN (2025),
-       PARTITION p2025 VALUES LESS THAN (2026)
-   );
-   ```
-
-2. **Кэширование (Redis)**
-    - Кэшировать `event:{eventId}`
-    - Кэшировать `user:{userId}:recommendations`
-    - TTL: 1 час для событий, 30 мин для рекомендаций
-
-3. **Индексирование полнотекстового поиска с помощью ElasticSearch**
-
----
-
 ## Версионирование схемы
 
-| Версия | Дата     | Изменения             |
-|--------|----------|-----------------------|
-| 1.0    | Дек 2025 | Первоначальная версия |
+| Версия | Дата     | Изменения                                                                                           |
+|--------|----------|-----------------------------------------------------------------------------------------------------|
+| 1.0    | Дек 2025 | Первоначальная версия                                                                               |
+| 1.1    | Дек 2025 | Исправления в соответствии с [запросом #5](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/5) |
