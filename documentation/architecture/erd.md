@@ -167,7 +167,7 @@ erDiagram
       long deletedAt "Timestamp удаления"
    }
    
-   COORDINTAOR {
+   COORDINATORS {
        int userId PK
        string workLocation
        string phoneNumber
@@ -193,6 +193,7 @@ erDiagram
    USER }|--|{ TAG: "N:N: interests (junction table)"
    USER }|--|{ USER_EVENTS: "N:N"
    
+   EVENT }|--|{ COORDINATORS: "N:1: coordinators"
    EVENT }|--|{ USER_EVENTS: "N:N"
    EVENT }|--|{ TAG: "N:N: tags (junction table)"
    EVENT ||--|| FILES: "1:1: cover_image"
@@ -336,6 +337,16 @@ EVENT (N) ───── (1) LOCATION
 ```
 
 - Несколько событий могут иметь одну локацию
+
+---
+
+### N:1: EVENT → COORDINATORS
+
+```
+EVENT (N) ───── (1) COORDINATORS
+```
+
+- Несколько событий могут иметь одного координатора
 
 ---
 
