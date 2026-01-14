@@ -82,12 +82,14 @@ erDiagram
 
     LOCATION {
         int locationId PK "Уникальный идентификатор"
+        string name "Наименование"
         string address "Полный адрес"
         string additional_notes "Дополнительные заметки (например, особенности расположения)"
         double latitude "Широта"
         double longitude "Долгота"
 
        long createdAt "Timestamp создания"
+       long updatedAt "Timestamp обновления"
        long deletedAt "Timestamp удаления"
     }
 
@@ -176,6 +178,7 @@ erDiagram
 
    LOCATION {
       int locationId PK
+      string name
       string address
       string additional_notes
       double latitude
@@ -306,6 +309,7 @@ erDiagram
 | Поле               | Тип          | Ключ | Индекс | Описание                               |
 |--------------------|--------------|------|--------|----------------------------------------|
 | `locationId`       | INT          | PK   | ✓      | AUTO_INCREMENT                         |
+| `name`             | VARCHAR(512) | -    | -      | Наименование                           |
 | `address`          | VARCHAR(512) | -    | -      | Полный адрес проведения                |
 | `additional_notes` | VARCHAR(512) | -    | -      | Дополнительные заметки по расположению |
 | `latitude`         | FLOAT        | -    | -      | Широта                                 |
