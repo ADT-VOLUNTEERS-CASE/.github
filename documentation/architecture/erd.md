@@ -75,9 +75,8 @@ erDiagram
         int fileId PK "Уникальный идентификатор"
         string link "URL файла"
         varchar metadata "Json (произвольные данные) файла в BASE64"
-
-       long createdAt "Timestamp создания"
-       long deletedAt "Timestamp удаления"
+        long createdAt "Timestamp создания"
+        long deletedAt "Timestamp удаления"
     }
 
     LOCATION {
@@ -87,10 +86,9 @@ erDiagram
         string additional_notes "Дополнительные заметки (например, особенности расположения)"
         double latitude "Широта"
         double longitude "Долгота"
-
-       long createdAt "Timestamp создания"
-       long updatedAt "Timestamp обновления"
-       long deletedAt "Timestamp удаления"
+        long createdAt "Timestamp создания"
+        long updatedAt "Timestamp обновления"
+        long deletedAt "Timestamp удаления"
     }
 
     STATUS["STATUS: ENUM"] {
@@ -109,98 +107,90 @@ erDiagram
 
 ```mermaid
 erDiagram
-   USER_EVENTS["USER - USER_EVENTS (JUNCTION TABLE) - EVENT"] {
-      bool accepted "Заявка принята"
-      bool rejected "Заявка отклонена организатором"
-      bool revoked "Пользователь отозвал заявку"
-      
-      string reject_reason "Причина отказа (Nullable)"
-      
-      long createdAt "Timestamp создания"
-      long rejectedAt "Timestamp отклонения"
-      long revokedAt "Timestamp отзыва"
-      long deletedAt "Timestamp удаления"
-   }
-   
-   USER {
-      int userId PK "Уникальный идентификатор"
-      string firstname "Имя (не NULL)"
-      string lastname "Фамилия (не NULL)"
-      string patronymic "Отчество (опционально)"
-      string phoneNumber UK "Телефон (уникальный, индексировано)"
-      string email UK "Email (уникальный, индексировано)"
-      
-      bool isAdmin
-      bool isCoordinator
+    USER_EVENTS["USER - USER_EVENTS (JUNCTION TABLE) - EVENT"] {
+        bool accepted "Заявка принята"
+        bool rejected "Заявка отклонена организатором"
+        bool revoked "Пользователь отозвал заявку"
+        string reject_reason "Причина отказа (Nullable)"
+        long createdAt "Timestamp создания"
+        long rejectedAt "Timestamp отклонения"
+        long revokedAt "Timestamp отзыва"
+        long deletedAt "Timestamp удаления"
+    }
 
-      long createdAt "Timestamp создания"
-      long updatedAt "Timestamp обновления"
-      long deletedAt "Timestamp удаления"
-   }
-   
-   EVENT {
-      int eventId PK "Уникальный идентификатор"
-      string status "Enum: ONGOING | IN_PROGRESS | COMPLETED"
-      string name "Название события (не NULL)"
-      string description "Описание события"
-      int coverId FK "Ссылка на FILES (опционально)"
-      string coordinatorContact "Email/телефон координатора"
-      int maxCapacity "Максимум участников (>0)"
-      long dateTimestamp "Unix timestamp события (индексировано)"
-      int locationId FK "Ссылка на LOCATION"
+    USER {
+        int userId PK "Уникальный идентификатор"
+        string firstname "Имя (не NULL)"
+        string lastname "Фамилия (не NULL)"
+        string patronymic "Отчество (опционально)"
+        string phoneNumber UK "Телефон (уникальный, индексировано)"
+        string email UK "Email (уникальный, индексировано)"
+        bool isAdmin
+        bool isCoordinator
+        long createdAt "Timestamp создания"
+        long updatedAt "Timestamp обновления"
+        long deletedAt "Timestamp удаления"
+    }
 
-      long createdAt "Timestamp создания"
-      long updatedAt "Timestamp обновления"
-      long deletedAt "Timestamp удаления"
-   }
+    EVENT {
+        int eventId PK "Уникальный идентификатор"
+        string status "Enum: ONGOING | IN_PROGRESS | COMPLETED"
+        string name "Название события (не NULL)"
+        string description "Описание события"
+        int coverId FK "Ссылка на FILES (опционально)"
+        string coordinatorContact "Email/телефон координатора"
+        int maxCapacity "Максимум участников (>0)"
+        long dateTimestamp "Unix timestamp события (индексировано)"
+        int locationId FK "Ссылка на LOCATION"
+        long createdAt "Timestamp создания"
+        long updatedAt "Timestamp обновления"
+        long deletedAt "Timestamp удаления"
+    }
 
-   TAG {
-      int tagId PK
-      string tagName UK
-   }
-    
-   FILES {
-      int fileId PK
-      string fileType
-      string link
-      varchar metadata
+    TAG {
+        int tagId PK
+        string tagName UK
+    }
 
-      long createdAt "Timestamp создания"
-      long deletedAt "Timestamp удаления"
-   }
-   
-   COORDINTAOR {
-       int userId PK
-       string workLocation
-       string phoneNumber
-       string email
-   }
+    FILES {
+        int fileId PK
+        string fileType
+        string link
+        varchar metadata
+        long createdAt "Timestamp создания"
+        long deletedAt "Timestamp удаления"
+    }
 
-   LOCATION {
-      int locationId PK
-      string name
-      string address
-      string additional_notes
-      double latitude
-      double longitude
-      
-      long createdAt "Timestamp создания"
-      long updatedAt "Timestamp обновления"
-      long deletedAt "Timestamp удаления"
-   }
-   
-   STATUS["STATUS: ENUM"] {
-      string status PK
-   }
+    COORDINTAOR {
+        int userId PK
+        string workLocation
+        string phoneNumber
+        string email
+    }
 
-   USER }|--|{ TAG: "N:N: interests (junction table)"
-   USER }|--|{ USER_EVENTS: "N:N"
-   
-   EVENT }|--|{ USER_EVENTS: "N:N"
-   EVENT }|--|{ TAG: "N:N: tags (junction table)"
-   EVENT ||--|| FILES: "1:1: cover_image"
-   EVENT }|--|| STATUS: "N:1 status"
-   EVENT }|--|| LOCATION: "N:1 location"
+    LOCATION {
+        int locationId PK
+        string name
+        string address
+        string additional_notes
+        double latitude
+        double longitude
+        long createdAt "Timestamp создания"
+        long updatedAt "Timestamp обновления"
+        long deletedAt "Timestamp удаления"
+    }
+
+    STATUS["STATUS: ENUM"] {
+        string status PK
+    }
+
+    USER }|--|{ TAG: "N:N: interests (junction table)"
+    USER }|--|{ USER_EVENTS: "N:N"
+    EVENT }|--|{ USER_EVENTS: "N:N"
+    EVENT }|--|{ TAG: "N:N: tags (junction table)"
+    EVENT ||--|| FILES: "1:1: cover_image"
+    EVENT }|--|| STATUS: "N:1 status"
+    EVENT }|--|| LOCATION: "N:1 location"
 ```
 
 ---
@@ -317,6 +307,7 @@ erDiagram
 | `createdAt`        | LONG         | -    | -      | Timestamp создания                     |
 | `updatedAt`        | LONG         | -    | -      | Timestamp обновления                   |
 | `deletedAt`        | LONG         | -    | -      | Timestamp удаления                     |
+
 ---
 
 ## Связи между сущностями
@@ -331,7 +322,6 @@ EVENT (1) ──── (1) FILES
 - Одно событие имеет максимум одну обложку
 - Допустимо значение NULL
 - Каскадное удаление/обновление
-
 
 ### N:1: EVENT → LOCATION
 
@@ -356,7 +346,6 @@ USER (N) ───── (N) TAG
 **Структура промежуточной таблицы:**
 
 ---
-
 
 ### N:N: USER ↔ EVENT
 
@@ -384,7 +373,8 @@ EVENT (N) ───── (N) TAG
 
 ## Версионирование схемы
 
-| Версия | Дата     | Изменения                                                                                           |
-|--------|----------|-----------------------------------------------------------------------------------------------------|
-| 1.0    | Дек 2025 | Первоначальная версия                                                                               |
-| 1.1    | Дек 2025 | Исправления в соответствии с [запросом #5](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/5) |
+| Версия | Дата     | Изменения                                                                                                                                                                    |
+|--------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0    | Дек 2025 | Первоначальная версия                                                                                                                                                        |
+| 1.1    | Дек 2025 | Исправления в соответствии с [запросом #5](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/5)                                                                          |
+| 1.2    | Янв 2026 | Исправления в соответствии с [запросом #7](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/7) и [запросом #8](https://github.com/ADT-VOLUNTEERS-CASE/.github/issues/8) |
